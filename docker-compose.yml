@@ -1,0 +1,32 @@
+services:
+  web:
+    build: .
+    ports: ["8088:80"]
+    volumes: [".:/var/www/html"]
+    environment:
+      TZ: America/Sao_Paulo
+      DB_HOST: db
+      DB_USER: cupcake
+      DB_PASS: cupcake
+    depends_on:
+      db: { condition: service_healthy }
+
+  db:
+    image: mysql:8.4
+    ports: ["3306:3306"]
+    environment:
+      TZ: America/Sao_Paulo
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cupcake_shop
+      MYSQL_USER: cupcake
+      MYSQL_PASSWORD: cupcake
+    volumes:
+      - ./scripts/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 3s
+      retries: 20
+
+volumes:
+  dbdata:
